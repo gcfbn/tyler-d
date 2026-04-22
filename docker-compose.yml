@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ollama:
     image: ollama/ollama:latest
@@ -18,6 +16,32 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
+    restart: always
+
+  ocr:
+    build:
+      context: .
+      dockerfile: services/ocr/Dockerfile
+    container_name: tscherepacha-ocr
+    ports:
+      - "50051:50051"
+    restart: always
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: services/orchestrator/Dockerfile
+    container_name: tscherepacha-orchestrator
+    ports:
+      - "50052:50052"
+    depends_on:
+      - qdrant
+      - ollama
+      - ocr
+    environment:
+      - QDRANT_URL=http://qdrant:6334
+      - OLLAMA_URL=http://ollama:11434
+      - OCR_URL=http://ocr:50051
     restart: always
 
 volumes:

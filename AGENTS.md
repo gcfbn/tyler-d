@@ -22,3 +22,4 @@
 3. **Commit often:** Commit changes incrementally in small, logical steps.
 4. **Branching:** NEVER commit to `master`. Always use feature branches (e.g., `feat/something` or `fix/something`).
 5. Test locally and provide reproduction steps.
+6. **Docker:** Do NOT use `sudo` for docker or docker-compose commands. The environment is configured for non-root access.

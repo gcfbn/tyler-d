@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package tscherepacha;
+
+service Orchestrator {
+  // Ingest a piece of text or a file
+  rpc Ingest (IngestRequest) returns (IngestResponse);
+  
+  // Ask a question based on stored knowledge
+  rpc Ask (AskRequest) returns (AskResponse);
+}
+
+message IngestRequest {
+  oneof source {
+    string text = 1;
+    FileContent file = 2;
+  }
+}
+
+message FileContent {
+  bytes content = 1;
+  string file_type = 2; // e.g., "pdf", "png"
+  string file_name = 3;
+}
+
+message IngestResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AskRequest {
+  string query = 1;
+}
+
+message AskResponse {
+  string answer = 1;
+}

@@ -4,7 +4,6 @@ use qdrant_client::Qdrant;
 use qdrant_client::config::QdrantConfig;
 use qdrant_client::qdrant::{CreateCollection, Distance, VectorParams, VectorsConfig, vectors_config, PointStruct, UpsertPoints, SearchPoints};
 use crate::storage::{StorageBackend, SearchResult};
-use std::collections::HashMap;
 
 pub struct QdrantBackend {
     client: Qdrant,
