@@ -1,0 +1,19 @@
+# Rust
+/services/orchestrator/target
+**/Cargo.lock
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/venv/
+.env
+
+# Project Specific
+*.png
+*.pdf
+*.jpg
+generate_test_asset.py
+/artifacts/logs/
+
+# Docker
+.docker_data/

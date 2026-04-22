@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package ocr;
+
+service OcrService {
+  rpc ProcessDocument (OcrRequest) returns (OcrResponse);
+}
+
+message OcrRequest {
+  bytes content = 1;
+  string file_type = 2; // e.g., "pdf", "png"
+}
+
+message OcrResponse {
+  string text = 1;
+  map<string, string> metadata = 2;
+}
