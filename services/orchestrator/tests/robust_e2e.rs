@@ -1,18 +1,19 @@
 use anyhow::Result;
-use tscherepacha::orchestrator_client::OrchestratorClient;
-use tscherepacha::{IngestRequest, AskRequest};
+use tyler_d::orchestrator_client::OrchestratorClient;
+use tyler_d::{IngestRequest, AskRequest};
 use std::time::Duration;
 use fake::{Fake, locales::EN};
 use fake::faker::name::raw::Name;
 use fake::faker::address::raw::CityName;
 use fake::faker::company::raw::CatchPhrase;
 
-pub mod tscherepacha {
-    tonic::include_proto!("tscherepacha");
+pub mod tyler_d {
+    tonic::include_proto!("tyler_d");
 }
 
 async fn get_client() -> Result<OrchestratorClient<tonic::transport::Channel>> {
-    let channel = tonic::transport::Channel::from_static("http://localhost:50052")
+    let url = std::env::var("ORCHESTRATOR_URL").unwrap_or_else(|_| "http://localhost:50052".to_string());
+    let channel = tonic::transport::Channel::from_shared(url)?
         .connect_timeout(Duration::from_secs(30))
         .connect()
         .await?;
@@ -31,14 +32,14 @@ async fn test_high_volume_random_data() -> Result<()> {
         let fact = format!("Person {} from {} says: {}. (ID: {})", name, city, catch_phrase, i);
         
         client.ingest(tonic::Request::new(IngestRequest {
-            source: Some(tscherepacha::ingest_request::Source::Text(fact)),
+            source: Some(tyler_d::ingest_request::Source::Text(fact)),
         })).await?;
     }
 
     // Needle in a haystack
     let needle = "Mój wujek Hieronim ukrył klucze do piwnicy za starym obrazem z jeleniem w Krakowie.";
     client.ingest(tonic::Request::new(IngestRequest {
-        source: Some(tscherepacha::ingest_request::Source::Text(needle.to_string())),
+        source: Some(tyler_d::ingest_request::Source::Text(needle.to_string())),
     })).await?;
 
     let question = "Gdzie Hieronim ukrył klucze?";
@@ -62,7 +63,7 @@ async fn test_evolving_information_multistep() -> Result<()> {
 
     for update in updates {
         client.ingest(tonic::Request::new(IngestRequest {
-            source: Some(tscherepacha::ingest_request::Source::Text(update.to_string())),
+            source: Some(tyler_d::ingest_request::Source::Text(update.to_string())),
         })).await?;
     }
 

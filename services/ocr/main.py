@@ -67,11 +67,14 @@ class OcrService(ocr_pb2_grpc.OcrServiceServicer):
         
         return full_text, metadata
 
+import os
+
 def serve():
+    port = os.environ.get("OCR_PORT", "50051")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     ocr_pb2_grpc.add_OcrServiceServicer_to_server(OcrService(), server)
-    server.add_insecure_port('[::]:50051')
-    print("OCR Service starting on port 50051...")
+    server.add_insecure_port(f'[::]:{port}')
+    print(f"OCR Service starting on port {port}...")
     server.start()
     server.wait_for_termination()
 

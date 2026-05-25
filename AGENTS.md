@@ -1,5 +1,5 @@
 # Context & Architecture
-`tscherepacha` is a microservices-based AI second brain.
+`tyler-d` is a microservices-based AI second brain.
 
 ## Architecture Map
 - **Orchestrator:** Rust (Actix/Axum). The central hub managing data flow.

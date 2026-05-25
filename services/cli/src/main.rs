@@ -3,23 +3,23 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::PathBuf;
 
-pub mod tscherepacha {
-    tonic::include_proto!("tscherepacha");
+pub mod tyler_d {
+    tonic::include_proto!("tyler_d");
 }
 
-use tscherepacha::orchestrator_client::OrchestratorClient;
-use tscherepacha::{IngestRequest, AskRequest, FileContent};
-use tscherepacha::ingest_request::Source;
+use tyler_d::orchestrator_client::OrchestratorClient;
+use tyler_d::{IngestRequest, AskRequest, FileContent, ListModelsRequest};
+use tyler_d::ingest_request::Source;
 
 #[derive(Parser)]
-#[command(name = "tsch")]
-#[command(about = "Tscherepacha AI Second Brain CLI", long_about = None)]
+#[command(name = "tyler-d")]
+#[command(about = "Tyler-d AI Second Brain CLI", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
 
     /// Orchestrator gRPC URL
-    #[arg(short, long, default_value = "http://localhost:50052")]
+    #[arg(short, long, env = "TYLERD_URL", default_value = "http://localhost:50052")]
     url: String,
 }
 
@@ -40,6 +40,8 @@ enum Commands {
         /// The question you want to ask
         query: String,
     },
+    /// List available models from the provider
+    Models,
 }
 
 #[tokio::main]
@@ -90,9 +92,20 @@ async fn main() -> Result<()> {
             let request = tonic::Request::new(AskRequest { query });
             let response = client.ask(request).await?.into_inner();
 
-            println!("\nTscherepacha Answer:");
+            println!("\nTyler-d Answer:");
             println!("-------------------");
             println!("{}", response.answer);
+        }
+        Commands::Models => {
+            let request = tonic::Request::new(ListModelsRequest {});
+            let response = client.list_models(request).await?.into_inner();
+
+            println!("\nAvailable Models:");
+            println!("{:<30} {:<10}", "MODEL ID", "PROVIDER");
+            println!("{}", "-".repeat(45));
+            for model in response.models {
+                println!("{:<30} {:<10}", model.id, model.provider);
+            }
         }
     }
 

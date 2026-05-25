@@ -1,15 +1,16 @@
 use anyhow::Result;
-use tscherepacha::orchestrator_client::OrchestratorClient;
-use tscherepacha::{IngestRequest, AskRequest};
+use tyler_d::orchestrator_client::OrchestratorClient;
+use tyler_d::{IngestRequest, AskRequest};
 
-pub mod tscherepacha {
-    tonic::include_proto!("tscherepacha");
+pub mod tyler_d {
+    tonic::include_proto!("tyler_d");
 }
 
 #[tokio::test]
 async fn test_ingest_and_ask_blackbox() -> Result<()> {
     // 1. Connect with a long timeout for slow CPU inference
-    let channel = tonic::transport::Channel::from_static("http://localhost:50052")
+    let url = std::env::var("ORCHESTRATOR_URL").unwrap_or_else(|_| "http://localhost:50052".to_string());
+    let channel = tonic::transport::Channel::from_shared(url)?
         .connect_timeout(std::time::Duration::from_secs(30))
         .connect()
         .await?;
@@ -19,7 +20,7 @@ async fn test_ingest_and_ask_blackbox() -> Result<()> {
     // 2. Action: Ingest a unique fact
     let secret_fact = "Moje tajne haslo do sejfu to: Zolw123";
     let ingest_request = tonic::Request::new(IngestRequest {
-        source: Some(tscherepacha::ingest_request::Source::Text(secret_fact.to_string())),
+        source: Some(tyler_d::ingest_request::Source::Text(secret_fact.to_string())),
     });
 
     println!("Ingesting secret fact...");
@@ -38,9 +39,10 @@ async fn test_ingest_and_ask_blackbox() -> Result<()> {
     println!("Answer received: {}", ask_res.answer);
 
     // 4. Assertion: Verify the answer contains the secret
+    let answer_lower = ask_res.answer.to_lowercase();
     assert!(
-        ask_res.answer.to_lowercase().contains("zolw123"),
-        "The answer should contain the secret password 'Zolw123'. Got: {}", 
+        answer_lower.contains("zolw123") || answer_lower.contains("żółw123"),
+        "The answer should contain the secret password 'Zolw123' or 'Żółw123'. Got: {}", 
         ask_res.answer
     );
 

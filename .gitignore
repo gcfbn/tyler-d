@@ -19,3 +19,8 @@ generate_test_asset.py
 
 # Docker
 .docker_data/
+
+# Environment variables
+.env
+.env.*
+!.env.template

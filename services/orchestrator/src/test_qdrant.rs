@@ -3,7 +3,8 @@ use qdrant_client::config::QdrantConfig;
 use qdrant_client::qdrant::CreateCollection;
 
 pub async fn check_inference() {
-    let config = QdrantConfig::from_url("http://localhost:6334");
+    let url = std::env::var("QDRANT_URL").unwrap_or_else(|_| "http://localhost:6334".to_string());
+    let config = QdrantConfig::from_url(&url);
     let client = Qdrant::new(config).unwrap();
     
     // Health check

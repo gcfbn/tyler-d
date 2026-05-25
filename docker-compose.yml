@@ -1,16 +1,26 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: tscherepacha-ollama
+    container_name: tyler-d-ollama
     volumes:
       - ollama_data:/root/.ollama
     ports:
       - "11434:11434"
     restart: always
+    profiles: ["ollama"]
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        ollama serve &
+        sleep 5
+        ollama pull SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M
+        ollama pull bge-m3
+        wait
 
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: tscherepacha-qdrant
+    container_name: tyler-d-qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
@@ -22,7 +32,7 @@ services:
     build:
       context: .
       dockerfile: services/ocr/Dockerfile
-    container_name: tscherepacha-ocr
+    container_name: tyler-d-ocr
     ports:
       - "50051:50051"
     restart: always
@@ -31,17 +41,35 @@ services:
     build:
       context: .
       dockerfile: services/orchestrator/Dockerfile
-    container_name: tscherepacha-orchestrator
+    container_name: tyler-d-orchestrator
     ports:
       - "50052:50052"
     depends_on:
       - qdrant
-      - ollama
+      - llm-gateway
       - ocr
     environment:
-      - QDRANT_URL=http://qdrant:6334
-      - OLLAMA_URL=http://ollama:11434
-      - OCR_URL=http://ocr:50051
+      - QDRANT_URL=${QDRANT_URL}
+      - LLM_GATEWAY_URL=${LLM_GATEWAY_URL}
+      - OCR_URL=${OCR_URL}
+      - VECTOR_DIMENSION=${VECTOR_DIMENSION}
+    restart: always
+
+  llm-gateway:
+    build:
+      context: .
+      dockerfile: services/llm_gateway/Dockerfile
+    container_name: tyler-d-llm-gateway
+    ports:
+      - "50053:50053"
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - LLM_MODEL=${LLM_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_URL=${LLM_URL}
+      - OLLAMA_URL=${OLLAMA_URL}
+      - USE_EXTERNAL_EMBEDDINGS=${USE_EXTERNAL_EMBEDDINGS}
     restart: always
 
 volumes:

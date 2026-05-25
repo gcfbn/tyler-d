@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tscherepacha;
+package tyler_d;
 
 service Orchestrator {
   // Ingest a piece of text or a file
@@ -8,6 +8,20 @@ service Orchestrator {
   
   // Ask a question based on stored knowledge
   rpc Ask (AskRequest) returns (AskResponse);
+
+  // List available models from the provider
+  rpc ListModels (ListModelsRequest) returns (ListModelsResponse);
+}
+
+message ListModelsRequest {}
+
+message ListModelsResponse {
+  repeated ModelInfo models = 1;
+}
+
+message ModelInfo {
+  string id = 1;
+  string provider = 2; // e.g., "ollama", "openai", "gemini"
 }
 
 message IngestRequest {

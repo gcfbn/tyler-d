@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package llm;
+
+service LlmService {
+  // Generate a completion based on a conversation history
+  rpc Generate (GenerateRequest) returns (GenerateResponse);
+
+  // Generate an embedding for the given text
+  rpc Embed (EmbedRequest) returns (EmbedResponse);
+
+  // List available models from the provider
+  rpc ListModels (ListModelsRequest) returns (ListModelsResponse);
+}
+
+message Message {
+  string role = 1;    // e.g., "user", "assistant", "system"
+  string content = 2;
+}
+
+message GenerateRequest {
+  repeated Message messages = 1;
+  string model = 2;   // Optional override for the model
+  float temperature = 3;
+}
+
+message GenerateResponse {
+  string text = 1;
+}
+
+message EmbedRequest {
+  string text = 1;
+  string model = 2;   // Optional override for the model
+}
+
+message EmbedResponse {
+  repeated float embedding = 1;
+}
+
+message ListModelsRequest {}
+
+message ListModelsResponse {
+  repeated ModelInfo models = 1;
+}
+
+message ModelInfo {
+  string id = 1;
+  string provider = 2; // e.g., "ollama", "openai", "gemini"
+}

@@ -1,5 +1,5 @@
 # Mission
-Build `tscherepacha`, an AI-powered, local-first "second brain" that stores, processes, and retrieves user thoughts, documents, and media. 
+Build `tyler-d`, an AI-powered, local-first "second brain" that stores, processes, and retrieves user thoughts, documents, and media. 
 
 # Core Objectives
 - **Privacy First:** All data processing and storage happens locally. No unprompted internet lookups.

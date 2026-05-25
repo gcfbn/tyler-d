@@ -1,4 +1,4 @@
-# Tscherepacha (Черепаха)
+# Tyler-d
 
 AI-powered local-first "second brain" optimized for Polish and privacy.
 
@@ -16,9 +16,10 @@ docker compose up -d
 ```
 
 ### 2. Prepare Local LLM
-Ensure Ollama is running, then pull the Bielik model:
+Ensure Ollama is running, then pull the models (Bielik for text, bge-m3 for embeddings):
 ```bash
-docker exec -it tscherepacha-ollama ollama run speakleash/bielik-v3-4.5b-instruct:q4_k_m
+docker exec -it tyler-d-ollama ollama pull speakleash/bielik-v3-4.5b-instruct:q4_k_m
+docker exec -it tyler-d-ollama ollama pull bge-m3
 ```
 
 ### 3. Development
