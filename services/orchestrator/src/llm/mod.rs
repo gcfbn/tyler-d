@@ -18,8 +18,8 @@ pub trait EmbeddingModel {
 
 #[async_trait]
 pub trait CompletionModel {
-    /// Generate a completion for the given prompt
-    async fn generate(&self, prompt: &str) -> Result<String>;
+    /// Generate a completion for a list of messages
+    async fn generate_chat(&self, messages: Vec<Message>) -> Result<String>;
 
     /// List available models from the provider
     async fn list_models(&self) -> Result<Vec<String>>;
@@ -56,14 +56,11 @@ impl EmbeddingModel for LlmGatewayClient {
 
 #[async_trait]
 impl CompletionModel for LlmGatewayClient {
-    async fn generate(&self, prompt: &str) -> Result<String> {
-        debug!("Calling LLM Gateway for generation (prompt length: {})", prompt.len());
+    async fn generate_chat(&self, messages: Vec<Message>) -> Result<String> {
+        debug!("Calling LLM Gateway for generation (messages: {})", messages.len());
         let mut client = self.client.clone();
         let request = tonic::Request::new(GenerateRequest {
-            messages: vec![Message {
-                role: "user".to_string(),
-                content: prompt.to_string(),
-            }],
+            messages,
             model: String::new(),
             temperature: 0.1,
         });

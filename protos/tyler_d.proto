@@ -42,8 +42,14 @@ message IngestResponse {
   string message = 2;
 }
 
+message Message {
+  string role = 1;    // e.g., "user", "assistant"
+  string content = 2;
+}
+
 message AskRequest {
   string query = 1;
+  repeated Message history = 2; // UI passes the context here
 }
 
 message AskResponse {

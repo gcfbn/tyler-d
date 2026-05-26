@@ -20,6 +20,7 @@ pub struct MyOrchestrator {
     storage: Arc<dyn StorageBackend + Send + Sync>,
     llm_client: Arc<LlmGatewayClient>,
     ocr_client: Mutex<OcrClient>,
+    max_context_tokens: usize,
 }
 
 #[tonic::async_trait]
@@ -118,7 +119,8 @@ impl Orchestrator for MyOrchestrator {
     async fn ask(&self, request: Request<AskRequest>) -> Result<Response<AskResponse>, Status> {
         let req = request.into_inner();
         let query = req.query;
-        debug!("Processing ask request: '{}'", query);
+        let history = req.history;
+        debug!("Processing ask request: '{}' (history size: {})", query, history.len());
 
         debug!("Generating embedding for query");
         let query_embedding = self.llm_client.embed(&query)
@@ -147,13 +149,52 @@ impl Orchestrator for MyOrchestrator {
             debug!("No relevant context found in storage for query");
         }
 
-        let prompt = format!(
-            "Jesteś pomocnym asystentem o nazwie Tyler-d. Odpowiadaj wyłącznie na podstawie dostarczonego kontekstu w języku polskim.\n\nKontekst:\n{}\n\nPytanie: {}\n\nOdpowiedź:",
-            context, query
-        );
+        let system_prompt = "Jesteś pomocnym asystentem o nazwie Tyler-d. Odpowiadaj wyłącznie na podstawie dostarczonego kontekstu w języku polskim.".to_string();
+        let context_str = format!("Kontekst:\n{}\n\nPytanie: {}\n\nOdpowiedź:", context, query);
 
-        debug!("Generating answer from LLM gateway");
-        let answer = self.llm_client.generate(&prompt)
+        // Token management using tiktoken
+        // We use o200k_base as a high-quality universal tokenizer (GPT-4o) which is a safe proxy for most modern BPEs.
+        let enc = tiktoken::get_encoding("o200k_base")
+            .ok_or_else(|| Status::internal("Failed to load o200k_base tokenizer"))?;
+
+        let system_tokens = enc.encode_with_special_tokens(&system_prompt).len();
+        let context_tokens = enc.encode_with_special_tokens(&context_str).len();
+        let mut total_tokens = system_tokens + context_tokens;
+
+        let mut final_history = Vec::new();
+        // Prune history from newest to oldest until we hit max_context_tokens
+        for msg in history.into_iter().rev() {
+            let msg_tokens = enc.encode_with_special_tokens(&msg.content).len();
+            if total_tokens + msg_tokens <= self.max_context_tokens {
+                total_tokens += msg_tokens;
+                final_history.insert(0, msg);
+            } else {
+                debug!("Pruning older message from history due to token limit ({} tokens)", msg_tokens);
+            }
+        }
+
+        use crate::llm::llm::Message as LlmMessage;
+        let mut messages = vec![
+            LlmMessage {
+                role: "system".to_string(),
+                content: system_prompt,
+            }
+        ];
+
+        for msg in final_history {
+            messages.push(LlmMessage {
+                role: msg.role,
+                content: msg.content,
+            });
+        }
+
+        messages.push(LlmMessage {
+            role: "user".to_string(),
+            content: context_str,
+        });
+
+        debug!("Generating answer from LLM gateway (total tokens estimate: {})", total_tokens);
+        let answer = self.llm_client.generate_chat(messages)
             .await
             .map_err(|e| {
                 error!("LLM generation failed: {}", e);
@@ -185,9 +226,10 @@ pub async fn run_server(config: Config) -> Result<()> {
         storage,
         llm_client,
         ocr_client: Mutex::new(ocr_client),
+        max_context_tokens: config.max_context_tokens,
     };
 
-    info!("Orchestrator gRPC server listening on {}", config.server_addr);
+    info!("Orchestrator gRPC server listening on {}, max context tokens: {}", config.server_addr, config.max_context_tokens);
 
     Server::builder()
         .add_service(OrchestratorServer::new(orchestrator))

@@ -8,6 +8,7 @@ pub struct Config {
     pub ocr_url: String,
     pub server_addr: SocketAddr,
     pub vector_dimension: usize,
+    pub max_context_tokens: usize,
 }
 
 impl Config {
@@ -26,12 +27,18 @@ impl Config {
             .parse()
             .context("Failed to parse VECTOR_DIMENSION")?;
 
+        let max_context_tokens = env::var("MAX_CONTEXT_TOKENS")
+            .unwrap_or_else(|_| "4096".to_string())
+            .parse()
+            .context("Failed to parse MAX_CONTEXT_TOKENS")?;
+
         Ok(Config {
             qdrant_url,
             llm_gateway_url,
             ocr_url,
             server_addr,
             vector_dimension,
+            max_context_tokens,
         })
     }
 }

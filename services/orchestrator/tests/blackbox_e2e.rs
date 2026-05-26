@@ -31,6 +31,7 @@ async fn test_ingest_and_ask_blackbox() -> Result<()> {
     let question = "Jakie jest moje tajne haslo do sejfu?";
     let ask_request = tonic::Request::new(AskRequest {
         query: question.to_string(),
+        history: vec![],
     });
 
     println!("Asking: '{}'", question);

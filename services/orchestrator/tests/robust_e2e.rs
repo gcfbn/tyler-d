@@ -43,7 +43,10 @@ async fn test_high_volume_random_data() -> Result<()> {
     })).await?;
 
     let question = "Gdzie Hieronim ukrył klucze?";
-    let res = client.ask(tonic::Request::new(AskRequest { query: question.to_string() })).await?.into_inner();
+    let res = client.ask(tonic::Request::new(AskRequest { 
+        query: question.to_string(),
+        history: vec![],
+    })).await?.into_inner();
     println!("Answer: {}", res.answer);
     
     assert!(res.answer.to_lowercase().contains("obrazem") || res.answer.to_lowercase().contains("jeleniem"));
@@ -68,7 +71,10 @@ async fn test_evolving_information_multistep() -> Result<()> {
     }
 
     let question = "Jaka jest aktualna nazwa mojego projektu i w jakiej jest fazie?";
-    let res = client.ask(tonic::Request::new(AskRequest { query: question.to_string() })).await?.into_inner();
+    let res = client.ask(tonic::Request::new(AskRequest { 
+        query: question.to_string(),
+        history: vec![],
+    })).await?.into_inner();
     let answer = res.answer.to_lowercase();
     
     println!("Answer: {}", answer);
@@ -81,7 +87,10 @@ async fn test_hallucination_prevention_missing_data() -> Result<()> {
     let mut client = get_client().await?;
 
     let question = "Kto wygrał wybory na prezydenta Marsa w 2026 roku?";
-    let res = client.ask(tonic::Request::new(AskRequest { query: question.to_string() })).await?.into_inner();
+    let res = client.ask(tonic::Request::new(AskRequest { 
+        query: question.to_string(),
+        history: vec![],
+    })).await?.into_inner();
     let answer = res.answer.to_lowercase();
     
     println!("Answer: {}", answer);

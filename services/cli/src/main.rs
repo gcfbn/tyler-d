@@ -89,7 +89,10 @@ async fn main() -> Result<()> {
             }
         }
         Commands::Ask { query } => {
-            let request = tonic::Request::new(AskRequest { query });
+            let request = tonic::Request::new(AskRequest { 
+                query,
+                history: vec![],
+            });
             let response = client.ask(request).await?.into_inner();
 
             println!("\nTyler-d Answer:");
