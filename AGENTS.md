@@ -2,12 +2,12 @@
 `tyler-d` is a microservices-based AI second brain.
 
 ## Architecture Map
-- **Orchestrator:** Rust (Actix/Axum). The central hub managing data flow.
-- **LLM Engine:** Ollama running `Bielik` (GGUF, CPU-optimized). Exposes an OpenAI-compatible API.
+- **Orchestrator:** Rust (Tonic). The central hub managing data flow and RAG logic.
+- **LLM Engine:** Ollama running `Bielik` (GGUF, CPU-optimized) or remote providers via Gateway.
 - **Memory (Vector DB):** Qdrant. Stores embeddings for semantic search.
-- **OCR Service:** Python/Rust container for extracting text from PDFs and Images.
-- **Frontend:** To be determined (CLI or lightweight GUI).
-- **Communication:** gRPC for internal services, REST for external UI.
+- **OCR Service:** Python (gRPC). Extracts text from PDFs and Images.
+- **Frontend:** Vue 3 / Nuxt UI v4 (Web) and Rust (CLI).
+- **Communication:** gRPC for all internal and external communication (using gRPC-Web for GUI).
 
 ## Coding Style & Rules
 - Strictly adhere to the rules in `SOUL.md` (concise, bullet points, no emojis).

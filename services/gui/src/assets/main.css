@@ -1,0 +1,6 @@
+@import './base.css';
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* Standard resets already handled by base.css and Nuxt UI */
+

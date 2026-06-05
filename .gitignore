@@ -24,3 +24,12 @@ generate_test_asset.py
 .env
 .env.*
 !.env.template
+
+# Node.JS
+**/node_modules/**
+
+# Git
+.worktrees/
+
+# VSC
+**/.vscode/**

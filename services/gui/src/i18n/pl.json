@@ -1,0 +1,38 @@
+{
+  "tabs": {
+    "ask": "Zapytaj",
+    "ingest": "Dodaj wiedzę"
+  },
+  "ingest": {
+    "tabs": {
+      "file": "Plik",
+      "text": "Tekst"
+    },
+    "placeholders": {
+      "textarea": "Wpisz treść do dodania do bazy wiedzy..."
+    },
+    "buttons": {
+      "submit": "Wyślij do bazy wiedzy"
+    },
+    "notifications": {
+      "success": {
+        "title": "Dodano poprawnie",
+        "file": "Załadowano plik do bazy wiedzy",
+        "text": "Wprowadzony tekst został dodany do bazy wiedzy"
+      },
+      "error": {
+        "title": "Błąd",
+        "file": "Błąd w trakcie ładowania pliku. Spróbuj ponownie później",
+        "text": "Błąd przy dodawaniu do bazy wiedzy. Spróbuje ponownie później"
+      }
+    }
+  },
+  "chat": {
+    "notifications": {
+      "error": {
+        "title": "Nie udało się wysłać wiadomości",
+        "description": "Spróbuj ponownie później"
+      }
+    }
+  }
+}

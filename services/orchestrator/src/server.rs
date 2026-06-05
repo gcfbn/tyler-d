@@ -3,6 +3,9 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tonic::{transport::Server, Request, Response, Status};
 use tracing::{info, debug, warn, error};
+use tower_http::cors::CorsLayer;
+use http::Method;
+use tonic_web::GrpcWebLayer;
 
 use crate::config::Config;
 use crate::storage::{qdrant::QdrantBackend, StorageBackend};
@@ -120,7 +123,7 @@ impl Orchestrator for MyOrchestrator {
         let req = request.into_inner();
         let query = req.query;
         let history = req.history;
-        debug!("Processing ask request: '{}' (history size: {})", query, history.len());
+        info!("Processing ask request: '{}' (history size: {})", query, history.len());
 
         debug!("Generating embedding for query");
         let query_embedding = self.llm_client.embed(&query)
@@ -231,8 +234,22 @@ pub async fn run_server(config: Config) -> Result<()> {
 
     info!("Orchestrator gRPC server listening on {}, max context tokens: {}", config.server_addr, config.max_context_tokens);
 
+    let orchestrator_service = OrchestratorServer::new(orchestrator);
+
+    // Enable gRPC-Web and CORS for browser compatibility
+    let cors = CorsLayer::permissive();
+
     Server::builder()
-        .add_service(OrchestratorServer::new(orchestrator))
+        .accept_http1(true)
+        .layer(cors)
+        .layer(GrpcWebLayer::new())
+        .add_service(orchestrator_service)
+        .serve(config.server_addr)
+        .await?;
+
+    Ok(())
+}
+vice)
         .serve(config.server_addr)
         .await?;
 
