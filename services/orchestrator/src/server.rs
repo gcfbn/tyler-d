@@ -4,7 +4,6 @@ use tokio::sync::Mutex;
 use tonic::{transport::Server, Request, Response, Status};
 use tracing::{info, debug, warn, error};
 use tower_http::cors::CorsLayer;
-use http::Method;
 use tonic_web::GrpcWebLayer;
 
 use crate::config::Config;
@@ -142,9 +141,9 @@ impl Orchestrator for MyOrchestrator {
             })?;
 
         let mut context = String::new();
-        for (i, res) in search_results.iter().enumerate() {
+        for res in search_results {
             if let Some(text) = res.payload.get("text").or_else(|| res.payload.get("content")).and_then(|v| v.as_str()) {
-                context.push_str(&format!("[{}] {}\n", i + 1, text));
+                context.push_str(&format!("- {}\n", text));
             }
         }
 
@@ -152,8 +151,14 @@ impl Orchestrator for MyOrchestrator {
             debug!("No relevant context found in storage for query");
         }
 
-        let system_prompt = "Jesteś pomocnym asystentem o nazwie Tyler-d. Odpowiadaj wyłącznie na podstawie dostarczonego kontekstu w języku polskim.".to_string();
-        let context_str = format!("Kontekst:\n{}\n\nPytanie: {}\n\nOdpowiedź:", context, query);
+        let system_prompt = "Jesteś Tyler-d, osobistym asystentem i \"drugim mózgiem\" użytkownika. Twoja wiedza pochodzi z prywatnych notatek i dokumentów użytkownika, które są ci udostępniane jako Twoja własna pamięć.
+Zasady:
+1. Odpowiadaj wyłącznie w języku polskim.
+2. Nigdy nie wspominaj użytkownikowi o istnieniu \"dostarczonego kontekstu\", \"fragmentów\" lub \"dokumentów\". Traktuj tę wiedzę jako własną.
+3. Jeśli w Twojej pamięci nie ma odpowiedzi na pytanie, odpowiedz uprzejmie, że nie posiadasz takich informacji. Nie próbuj zgadywać ani nie opisuj innych informacji, które widzisz w pamięci, a które nie dotyczą pytania.
+4. Nie używaj przypisów ani numeracji źródeł (np. [1]).
+5. Bądź zwięzły i pomocny.".to_string();
+        let context_str = format!("Pamięć (Twoja wiedza):\n{}\n\nPytanie użytkownika: {}\n\nTwoja odpowiedź:", context, query);
 
         // Token management using tiktoken
         // We use o200k_base as a high-quality universal tokenizer (GPT-4o) which is a safe proxy for most modern BPEs.
@@ -244,12 +249,6 @@ pub async fn run_server(config: Config) -> Result<()> {
         .layer(cors)
         .layer(GrpcWebLayer::new())
         .add_service(orchestrator_service)
-        .serve(config.server_addr)
-        .await?;
-
-    Ok(())
-}
-vice)
         .serve(config.server_addr)
         .await?;
 
